@@ -1,0 +1,6 @@
+#ifndef GORILLA_DEBUGGING_HPP
+#define GORILLA_DEBUGGING_HPP
+
+#include "log.hpp"
+
+#endif //GORILLA_DEBUGGING_HPP
