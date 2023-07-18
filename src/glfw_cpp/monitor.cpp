@@ -1,5 +1,6 @@
 #include "monitor.hpp"
 
+#include <error_handling/assert.hpp>
 
 namespace glfw
 {
@@ -27,7 +28,7 @@ monitor::gamma_ramp_t::gamma_ramp_t(GLFWgammaramp raw_gr)
 monitor::monitor(GLFWmonitor* raw_handle)
 	: m_handle(raw_handle)
 {
-	glfwSetMonitorCallback(config_callback_raw);
+	err::asserts(raw_handle != nullptr, "Null handle");
 	glfwSetMonitorUserPointer(m_handle, this);
 }
 
@@ -54,15 +55,18 @@ monitor::~monitor() noexcept
 		glfwSetMonitorUserPointer(m_handle, nullptr);
 }
 
+void monitor::initialize()
+{
+	glfwSetMonitorCallback(config_callback_raw);
+}
+
 std::vector<monitor> monitor::get_monitors()
 {
 	std::vector<monitor> res;
+
 	i32 size = 0;
-	glfwGetMonitors(&size);
-
-	res.reserve(size);
-
 	GLFWmonitor** array = glfwGetMonitors(&size);
+	res.reserve(size);
 	for (i32 m_ind = 0; m_ind < size; ++m_ind)
 	{
 		res.push_back(monitor(array[m_ind]));
@@ -71,9 +75,13 @@ std::vector<monitor> monitor::get_monitors()
 	return res;
 }
 
-monitor monitor::get_primary_monitor()
+std::optional<monitor> monitor::get_primary_monitor()
 {
-	return monitor(glfwGetPrimaryMonitor());
+	GLFWmonitor* handle_raw = glfwGetPrimaryMonitor();
+	if (!handle_raw)
+		return std::nullopt;
+
+	return monitor(handle_raw);
 }
 
 std::pair<i32, i32> monitor::position() const
@@ -129,10 +137,8 @@ std::vector<monitor::video_mode_t> monitor::video_modes() const
 {
 	std::vector<monitor::video_mode_t> res;
 	int size = 0;
-	glfwGetVideoModes(m_handle, &size);
-
-	res.resize(size);
 	const GLFWvidmode* array = glfwGetVideoModes(m_handle, &size);
+	res.resize(size);
 	for (int vm_ind = 0; vm_ind < size; ++vm_ind)
 	{
 		res[vm_ind] = array[vm_ind];
@@ -182,12 +188,12 @@ void monitor::config_callback_raw(GLFWmonitor* handle, i32 event)
 	{
 		monitor& self = *static_cast<monitor*>(user_ptr);
 
-		monitor::m_config_callback(self, event);
+		monitor::m_config_callback(self, config_callback_event(event));
 	}
 	else
 	{
 		monitor tmp_self(handle);
-		monitor::m_config_callback(tmp_self, event);
+		monitor::m_config_callback(tmp_self, config_callback_event(event));
 	}
 }
 

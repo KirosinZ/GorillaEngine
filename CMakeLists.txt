@@ -7,6 +7,8 @@ find_package(Vulkan REQUIRED COMPONENTS
         shaderc_combined
         SPIRV-Tools)
 
+add_subdirectory(external/boost-1.82.0 EXCLUDE_FROM_ALL)
+
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -22,6 +24,23 @@ add_compile_definitions(GORILLA_VERSION_PATCH=1)
 add_compile_definitions(GORILLA_BUILD_TYPE_${CMAKE_BUILD_TYPE})
 
 add_subdirectory(external/glm)
+
+add_library(platform INTERFACE
+        src/platform/build.hpp
+        src/platform/common.hpp
+        src/platform/ver.hpp)
+
+add_library(error_handling STATIC
+        src/error_handling/assert.hpp
+        src/error_handling/assert.cpp
+        src/error_handling/exceptions.hpp)
+
+target_include_directories(error_handling
+        PUBLIC src)
+
+target_link_libraries(error_handling
+        platform
+        Boost::leaf)
 
 add_executable(Gorilla
         src/platform/ver.hpp
@@ -41,7 +60,7 @@ add_executable(Gorilla
         external/imgui/imgui_impl_glfw.cpp
         external/imgui/imgui_impl_glfw.h
 
-        main.cpp src/glfw_cpp/glfw.hpp src/error_handling/assert.hpp src/debugging/debugging.hpp src/glfw_cpp/windowhints.hpp src/debugging/log.hpp src/error_handling/assert.cpp src/error_handling/exceptions.hpp src/debugging/log.cpp src/glfw_cpp/window.hpp src/glfw_cpp/window.cpp src/glfw_cpp/monitor.cpp src/glfw_cpp/monitor.hpp)
+        main.cpp src/glfw_cpp/library.hpp src/debugging/debugging.hpp src/glfw_cpp/windowhints.hpp src/debugging/log.hpp src/debugging/log.cpp src/glfw_cpp/window.hpp src/glfw_cpp/window.cpp src/glfw_cpp/monitor.cpp src/glfw_cpp/monitor.hpp src/glfw_cpp/glfw.hpp src/glfw_cpp/glfw.cpp src/glfw_cpp/library.cpp src/vulkan_renderer/environment.hpp src/glfw_cpp/vulkan_glue.hpp src/glfw_cpp/vulkan_glue.cpp src/vulkan_renderer/environment.cpp src/vulkan_renderer/display.cpp src/vulkan_renderer/display.hpp src/utility/reference_ptr.hpp)
 
 target_include_directories(Gorilla
         PUBLIC src)
@@ -50,5 +69,6 @@ target_link_libraries(Gorilla
         Vulkan::Vulkan
         Vulkan::shaderc_combined
         Vulkan::SPIRV-Tools
+        error_handling
         glfw
         glm)

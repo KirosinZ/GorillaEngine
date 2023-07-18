@@ -15,4 +15,6 @@ asserts(
 
 }
 
+namespace err = error_handling;
+
 #endif //GORILLA_ASSERT_HPP

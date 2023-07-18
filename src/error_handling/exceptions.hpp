@@ -4,40 +4,17 @@
 #include <stdexcept>
 #include <concepts>
 
+#include <boost/leaf/result.hpp>
+#include <boost/leaf/error.hpp>
+#include <boost/leaf/handle_errors.hpp>
+
 namespace error_handling
 {
-template<typename T>
-concept exception_c = std::derived_from<T, std::exception>;
 
-
-template<exception_c E = std::runtime_error>
-inline void
-throw_if(bool check, const std::string& message = "");
-
-template<exception_c E = std::invalid_argument>
-inline void
-validate_arg(bool arg_check, const std::string& message = "");
-
-
-
-
-
-
-template<exception_c E>
-void
-throw_if(bool check, const std::string& message)
-{
-	if (check)
-		throw E(message);
-}
-
-template<exception_c E>
-void
-validate_arg(bool arg_check, const std::string& message)
-{
-	throw_if<E>(!arg_check, message);
-}
+using namespace boost::leaf;
 
 }
+
+namespace err = error_handling;
 
 #endif //GORILLA_EXCEPTIONS_HPP

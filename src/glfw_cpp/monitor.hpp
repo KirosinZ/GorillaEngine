@@ -6,10 +6,11 @@
 #include <any>
 #include <array>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
-#include "glfw.hpp"
+#include "library.hpp"
 
 namespace glfw
 {
@@ -17,7 +18,13 @@ namespace glfw
 class monitor
 {
 public:
-	using config_callback_sgn = void(monitor&, i32);
+	enum class config_callback_event
+	{
+		connected = GLFW_CONNECTED,
+		disconnected = GLFW_DISCONNECTED,
+	};
+
+	using config_callback_sgn = void(monitor&, config_callback_event);
 
 	struct video_mode_t
 	{
@@ -61,8 +68,10 @@ public:
 
 	~monitor() noexcept;
 
+	static void initialize();
+
 	static std::vector<monitor> get_monitors();
-	static monitor get_primary_monitor();
+	static std::optional<monitor> get_primary_monitor();
 
 	[[nodiscard]] std::pair<i32, i32> position() const;
 	[[nodiscard]] work_area_t work_area() const;
@@ -70,9 +79,6 @@ public:
 	[[nodiscard]] std::pair<f32, f32> content_scale() const;
 
 	[[nodiscard]] std::string name() const;
-
-	[[nodiscard]] inline const std::any& user_data() const { return m_user_data; };
-	inline std::any& user_data() { return m_user_data; };
 
 	inline static void set_config_callback(const std::function<config_callback_sgn>& callback) { monitor::m_config_callback = callback; }
 
@@ -84,6 +90,9 @@ public:
 	void set_gamma_ramp(const gamma_ramp_t& gamma_ramp);
 
 	[[nodiscard]] inline GLFWmonitor* handle() const { return m_handle; };
+
+	[[nodiscard]] inline const std::any& user_data() const { return m_user_data; };
+	inline std::any& user_data() { return m_user_data; };
 private:
 	explicit monitor(GLFWmonitor* raw_handle);
 
