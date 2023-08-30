@@ -8,13 +8,12 @@
 #include <boost/leaf/error.hpp>
 #include <boost/leaf/handle_errors.hpp>
 
-namespace error_handling
+
+namespace gorilla::error_handling
 {
 
 using namespace boost::leaf;
 
 }
-
-namespace err = error_handling;
 
 #endif //GORILLA_EXCEPTIONS_HPP

@@ -1,21 +1,20 @@
 #ifndef GORILLA_WINDOWHINTS_HPP
 #define GORILLA_WINDOWHINTS_HPP
 
-#include "platform/common.hpp"
 
-namespace glfw
+namespace gorilla::glfw
 {
 
-constexpr i32 dont_care = -1;
+constexpr int32_t dont_care = -1;
 
 struct window_hints
 {
 	bool resizable = true;
 	bool visible = true;
 	bool decorated = true;
-	bool focused   = true;
+	bool focused = true;
 	bool minimized = true;
-	bool top_most  = false;
+	bool top_most = false;
 	bool maximized = false;
 
 	bool scale_to_monitor = false;
@@ -25,15 +24,15 @@ struct window_hints
 
 struct framebuffer_hints
 {
-	i32 red_bits = 8;
-	i32 green_bits = 8;
-	i32 blue_bits = 8;
-	i32 alpha_bits = 8;
+	int32_t red_bits = 8;
+	int32_t green_bits = 8;
+	int32_t blue_bits = 8;
+	int32_t alpha_bits = 8;
 
-	i32 depth_bits = 24;
-	i32 stencil_bits = 8;
+	int32_t depth_bits = 24;
+	int32_t stencil_bits = 8;
 
-	i32 samples = 0;
+	int32_t samples = 0;
 
 	bool stereo = false;
 	bool srgb_capable = false;
@@ -79,8 +78,8 @@ struct context_hints
 {
 	context_client_api client = context_client_api::none;
 	context_creation_api source = context_creation_api::native;
-	i32 version_major = 1;
-	i32 version_minor = 0;
+	int32_t version_major = 1;
+	int32_t version_minor = 0;
 	context_robustness robustness = context_robustness::no_robustness;
 
 	bool opengl_fwd_compat = false;
@@ -93,11 +92,11 @@ struct context_hints
 
 struct window_init_info
 {
-	context_hints context_hints{};
-	window_hints window_hints{};
-	framebuffer_hints framebuffer_hints{};
-	
-	i32 refresh_rate = dont_care;
+	context_hints context_hints{ };
+	window_hints window_hints{ };
+	framebuffer_hints framebuffer_hints{ };
+
+	int32_t refresh_rate = dont_care;
 };
 
 }

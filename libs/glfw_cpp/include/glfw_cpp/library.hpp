@@ -1,14 +1,13 @@
 #ifndef GORILLA_LIBRARY_HPP
 #define GORILLA_LIBRARY_HPP
 
-#include "platform/common.hpp"
-
 #include <string>
 #include <vector>
 
 #include <GLFW/glfw3.h>
 
-namespace glfw
+
+namespace gorilla::glfw
 {
 
 enum class error
@@ -26,34 +25,30 @@ enum class error
 	no_window_context = GLFW_NO_WINDOW_CONTEXT,
 };
 
-constexpr u32 version_major = GLFW_VERSION_MAJOR;
-constexpr u32 version_minor = GLFW_VERSION_MINOR;
-constexpr u32 version_revision = GLFW_VERSION_REVISION;
+constexpr uint32_t version_major = GLFW_VERSION_MAJOR;
+constexpr uint32_t version_minor = GLFW_VERSION_MINOR;
+constexpr uint32_t version_revision = GLFW_VERSION_REVISION;
 
 struct library
 {
-	// Init hints for GLFW are apparently just a bunch of bullshit
-	// so I am not going to implement those. At least not yet.
-	library();
+	library() noexcept;
 
-	library(library&&) noexcept;
-	library& operator=(library&&) noexcept;
+	library(const library&) noexcept;
 
-	library(const library&) = delete;
-	library& operator=(const library&) = delete;
+	library& operator=(const library&) noexcept;
 
 	~library() noexcept;
 
-	[[nodiscard]] inline bool initialized() const { return m_initialized; }
-
 private:
-	bool m_initialized = false;
-	bool m_valid = false;
+	static int init_count_;
 };
 
 void poll_events();
+
 void wait_events();
+
 void wait_events(double timeout);
+
 void post_empty_event();
 
 }

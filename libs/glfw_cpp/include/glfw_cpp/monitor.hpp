@@ -1,8 +1,6 @@
 #ifndef GORILLA_MONITOR_HPP
 #define GORILLA_MONITOR_HPP
 
-#include "platform/common.hpp"
-
 #include <any>
 #include <array>
 #include <functional>
@@ -10,9 +8,12 @@
 #include <string>
 #include <vector>
 
+#include <glm/glm.hpp>
+
 #include "library.hpp"
 
-namespace glfw
+
+namespace gorilla::glfw
 {
 
 class monitor
@@ -28,42 +29,46 @@ public:
 
 	struct video_mode_t
 	{
-		i32 width = 0;
-		i32 height = 0;
-		i32 red_bits = 0;
-		i32 green_bits = 0;
-		i32 blue_bits = 0;
-		i32 refresh_rate = 0;
+		int32_t width = 0;
+		int32_t height = 0;
+		int32_t red_bits = 0;
+		int32_t green_bits = 0;
+		int32_t blue_bits = 0;
+		int32_t refresh_rate = 0;
 
 		video_mode_t() = default;
+
 		video_mode_t(GLFWvidmode raw_vm);
 	};
 
 	struct gamma_ramp_t
 	{
-		static constexpr u32 size = 256;
-		std::array<u16, size> red{};
-		std::array<u16, size> blue{};
-		std::array<u16, size> green{};
+		static constexpr uint32_t size = 256;
+		std::array<uint16_t, size> red{ };
+		std::array<uint16_t, size> blue{ };
+		std::array<uint16_t, size> green{ };
 
 		gamma_ramp_t() = default;
+
 		gamma_ramp_t(GLFWgammaramp raw_gr);
 	};
 
 	struct work_area_t
 	{
-		i32 xpos = 0;
-		i32 ypos = 0;
-		i32 width = 0;
-		i32 height = 0;
+		int32_t xpos = 0;
+		int32_t ypos = 0;
+		int32_t width = 0;
+		int32_t height = 0;
 	};
 
 	monitor() = delete;
 
 	monitor(monitor&&) noexcept;
+
 	monitor& operator=(monitor&&) noexcept;
 
 	monitor(const monitor&) = delete;
+
 	monitor& operator=(const monitor&) = delete;
 
 	~monitor() noexcept;
@@ -71,36 +76,49 @@ public:
 	static void initialize();
 
 	static std::vector<monitor> get_monitors();
+
 	static std::optional<monitor> get_primary_monitor();
 
-	[[nodiscard]] std::pair<i32, i32> position() const;
+	[[nodiscard]] glm::ivec2 position() const;
+
 	[[nodiscard]] work_area_t work_area() const;
-	[[nodiscard]] std::pair<i32, i32> physical_size() const;
-	[[nodiscard]] std::pair<f32, f32> content_scale() const;
+
+	[[nodiscard]] glm::ivec2 physical_size() const;
+
+	[[nodiscard]] glm::vec2 content_scale() const;
 
 	[[nodiscard]] std::string name() const;
 
-	inline static void set_config_callback(const std::function<config_callback_sgn>& callback) { monitor::m_config_callback = callback; }
+	inline static void set_config_callback(const std::function<config_callback_sgn>& callback)
+	{ monitor::config_callback_ = callback; }
 
 	[[nodiscard]] std::vector<video_mode_t> video_modes() const;
+
 	[[nodiscard]] video_mode_t video_mode() const;
 
-	void set_gamma(f32 gamma);
+	void set_gamma(float gamma);
+
 	[[nodiscard]] gamma_ramp_t gamma_ramp() const;
+
 	void set_gamma_ramp(const gamma_ramp_t& gamma_ramp);
 
-	[[nodiscard]] inline GLFWmonitor* handle() const { return m_handle; };
+	[[nodiscard]] inline GLFWmonitor* handle() const
+	{ return handle_; };
 
-	[[nodiscard]] inline const std::any& user_data() const { return m_user_data; };
-	inline std::any& user_data() { return m_user_data; };
+	[[nodiscard]] inline const std::any& user_data() const
+	{ return user_data_; };
+
+	inline std::any& user_data()
+	{ return user_data_; };
 private:
 	explicit monitor(GLFWmonitor* raw_handle);
 
-	static void config_callback_raw(GLFWmonitor*, i32 event);
-	inline static std::function<config_callback_sgn> m_config_callback{};
+	static void config_callback_raw(GLFWmonitor*, int32_t event);
 
-	GLFWmonitor* m_handle = nullptr;
-	std::any m_user_data{};
+	inline static std::function<config_callback_sgn> config_callback_{ };
+
+	GLFWmonitor* handle_ = nullptr;
+	std::any user_data_{ };
 };
 
 } // glfw

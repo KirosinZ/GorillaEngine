@@ -7,11 +7,14 @@
 
 #include "window.hpp"
 
-namespace glfw
+
+namespace gorilla::glfw
 {
 
 std::vector<const char*> required_instance_extensions();
-bool query_present_capabilities(const vk::raii::Instance& t_instance, const vk::raii::PhysicalDevice& t_phys_device, u32 queue_family);
+
+bool query_present_capabilities(const vk::raii::Instance& t_instance, const vk::raii::PhysicalDevice& t_phys_device, uint32_t queue_family);
+
 vk::raii::SurfaceKHR surface(const vk::raii::Instance& t_instance, const window& t_window);
 
 }
