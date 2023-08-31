@@ -77,9 +77,28 @@ include(FetchContent)
 
 add_subdirectory(libs/error_handling)
 add_subdirectory(libs/glfw_cpp)
+add_subdirectory(libs/vulkan_renderer)
 
-add_executable(Gorilla main.cpp)
+add_executable(Gorilla
+        main.cpp
+        external/imgui/imgui.cpp
+        external/imgui/imgui.h
+        external/imgui/imgui_impl_vulkan.cpp
+        external/imgui/imgui_impl_vulkan.h
+        external/imgui/imconfig.h
+        external/imgui/imgui_draw.cpp
+        external/imgui/imgui_demo.cpp
+        external/imgui/imgui_internal.h
+        external/imgui/imgui_tables.cpp
+        external/imgui/imgui_widgets.cpp
+        external/imgui/imgui_impl_glfw.cpp
+        external/imgui/imgui_impl_glfw.h)
+
+target_include_directories(Gorilla PUBLIC
+        external)
+
 target_link_libraries(Gorilla
-        error_handling
-        glfw_cpp
-        Vulkan::Vulkan)
+        Gorilla::error_handling
+        Gorilla::glfw_cpp
+        Vulkan::Vulkan
+        Gorilla::vulkan_renderer)

@@ -187,10 +187,13 @@ public:
 	{ return framebuffersize_callback_; }
 
 private:
+	window() noexcept = default;
+
 	window(std::string title, GLFWwindow* handle, std::any user_data = { }) noexcept;
 
 	std::string title_;
-	std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> handle_;
+	library library_handle_{ };
+	std::unique_ptr<GLFWwindow, decltype(&glfwDestroyWindow)> handle_{ nullptr, &glfwDestroyWindow };
 	std::any user_data_;
 
 	std::function<position_callback_sgn> position_callback_;

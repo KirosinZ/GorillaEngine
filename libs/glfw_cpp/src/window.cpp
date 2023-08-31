@@ -152,19 +152,20 @@ window::window(std::string title, GLFWwindow* handle, std::any user_data) noexce
 	  user_data_(std::move(user_data))
 {
 	glfwSetWindowUserPointer(handle_.get(), this);
-	glfwSetWindowPosCallback(handle_.get(), position_callback_raw);
-	glfwSetWindowSizeCallback(handle_.get(), size_callback_raw);
-	glfwSetWindowCloseCallback(handle_.get(), close_callback_raw);
-	glfwSetWindowRefreshCallback(handle_.get(), refresh_callback_raw);
-	glfwSetWindowFocusCallback(handle_.get(), focus_callback_raw);
-	glfwSetWindowIconifyCallback(handle_.get(), minimize_callback_raw);
-	glfwSetWindowMaximizeCallback(handle_.get(), maximize_callback_raw);
-	glfwSetWindowContentScaleCallback(handle_.get(), contentscale_callback_raw);
-	glfwSetFramebufferSizeCallback(handle_.get(), framebuffersize_callback_raw);
+//	glfwSetWindowPosCallback(handle_.get(), position_callback_raw);
+//	glfwSetWindowSizeCallback(handle_.get(), size_callback_raw);
+//	glfwSetWindowCloseCallback(handle_.get(), close_callback_raw);
+//	glfwSetWindowRefreshCallback(handle_.get(), refresh_callback_raw);
+//	glfwSetWindowFocusCallback(handle_.get(), focus_callback_raw);
+//	glfwSetWindowIconifyCallback(handle_.get(), minimize_callback_raw);
+//	glfwSetWindowMaximizeCallback(handle_.get(), maximize_callback_raw);
+//	glfwSetWindowContentScaleCallback(handle_.get(), contentscale_callback_raw);
+//	glfwSetFramebufferSizeCallback(handle_.get(), framebuffersize_callback_raw);
 }
 
 error_handling::result<window> window::ctor(int32_t width, int32_t height, const std::string& title, const window_init_info& init_info)
 {
+	window tmp;
 	BOOST_LEAF_CHECK(set_window_hints(init_info));
 
 	GLFWwindow* handle = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
@@ -177,6 +178,7 @@ error_handling::result<window> window::ctor(int32_t width, int32_t height, const
 
 error_handling::result<window> window::ctor(int32_t width, int32_t height, const std::string& title, const monitor& mnt, const window_init_info& init_info)
 {
+	window tmp;
 	BOOST_LEAF_CHECK(set_window_hints(init_info));
 
 	GLFWwindow* handle = glfwCreateWindow(width, height, title.c_str(), mnt.handle(), nullptr);
@@ -189,6 +191,7 @@ error_handling::result<window> window::ctor(int32_t width, int32_t height, const
 
 error_handling::result<window> window::ctor(int32_t width, int32_t height, const std::string& title, const window& share, const window_init_info& init_info)
 {
+	window tmp;
 	BOOST_LEAF_CHECK(set_window_hints(init_info));
 
 	GLFWwindow* handle = glfwCreateWindow(width, height, title.c_str(), nullptr, share.handle());
@@ -201,6 +204,7 @@ error_handling::result<window> window::ctor(int32_t width, int32_t height, const
 
 error_handling::result<window> window::ctor(int32_t width, int32_t height, const std::string& title, const monitor& mnt, const window& share, const window_init_info& init_info)
 {
+	window tmp;
 	BOOST_LEAF_CHECK(set_window_hints(init_info));
 
 	GLFWwindow* handle = glfwCreateWindow(width, height, title.c_str(), mnt.handle(), share.handle());
