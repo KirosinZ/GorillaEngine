@@ -25,8 +25,7 @@ struct environment_create_info
 class environment
 {
 public:
-
-	environment() = delete;
+	environment(const environment_create_info& create_info = { });
 
 	environment(const environment&) = delete;
 
@@ -36,59 +35,45 @@ public:
 
 	environment& operator=(environment&&) noexcept = default;
 
-	~environment() = default;
-
-	static gorilla::error_handling::result<environment> ctor(const environment_create_info& create_info = { });
-
 	[[nodiscard]] inline const vk::raii::Context& context() const noexcept
-	{ return m_context; }
+	{ return context_; }
 
 	[[nodiscard]] inline const vk::raii::Instance& instance() const noexcept
-	{ return m_instance; }
+	{ return instance_; }
 
 	[[nodiscard]] inline const vk::raii::PhysicalDevice& phys_device() const noexcept
-	{ return m_phys_device; }
+	{ return phys_device_; }
 
 	[[nodiscard]] inline const vk::raii::Device& device() const noexcept
-	{ return m_device; }
+	{ return device_; }
 
 	[[nodiscard]] inline int graphics_family() const noexcept
-	{ return m_graphics_family; }
+	{ return graphics_family_; }
 
 	[[nodiscard]] inline const vk::raii::Queue& graphics_queue() const noexcept
-	{ return m_queues[0]; }
+	{ return queues_[0]; }
 
 	[[nodiscard]] inline int compute_family() const noexcept
-	{ return m_compute_family; }
+	{ return compute_family_; }
 
 	[[nodiscard]] inline const vk::raii::Queue& compute_queue() const noexcept
-	{ return m_queues[1]; }
+	{ return queues_[1]; }
 
 	[[nodiscard]] inline int transfer_family() const noexcept
-	{ return m_transfer_family; }
+	{ return transfer_family_; }
 
 	[[nodiscard]] inline const vk::raii::Queue& transfer_queue() const noexcept
-	{ return m_queues[2]; }
+	{ return queues_[2]; }
 
 private:
-	environment(
-		vk::raii::Context t_context,
-		vk::raii::Instance t_instance,
-		vk::raii::PhysicalDevice t_phys_device,
-		vk::raii::Device t_device,
-		int t_graphics_family,
-		int t_compute_family,
-		int t_transfer_family,
-		std::vector<vk::raii::Queue> t_queues) noexcept;
-
-	vk::raii::Context m_context;
-	vk::raii::Instance m_instance = nullptr;
-	vk::raii::PhysicalDevice m_phys_device = nullptr;
-	vk::raii::Device m_device = nullptr;
-	int m_graphics_family = -1;
-	int m_compute_family = -1;
-	int m_transfer_family = -1;
-	std::vector<vk::raii::Queue> m_queues;
+	vk::raii::Context context_;
+	vk::raii::Instance instance_ = nullptr;
+	vk::raii::PhysicalDevice phys_device_ = nullptr;
+	vk::raii::Device device_ = nullptr;
+	int graphics_family_ = -1;
+	int compute_family_ = -1;
+	int transfer_family_ = -1;
+	std::vector<vk::raii::Queue> queues_;
 };
 
 }
