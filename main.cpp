@@ -37,226 +37,29 @@ int main()
 			},
 		});
 
-	gorilla::vulkan_renderer::environment env = *gorilla::vulkan_renderer::environment::ctor(
-		{
+	std::shared_ptr<vkr::environment> env = std::make_shared<vkr::environment>(
+		vkr::environment_create_info{
 			.app_name = window.title(),
 			.desired_instance_layers = { "VK_LAYER_KHRONOS_validation" },
 			.desired_instance_extensions = glfw::required_instance_extensions(),
 			.desired_device_extensions = { "VK_KHR_swapchain" }
 		});
 
-	gorilla::vulkan_renderer::display display = *gorilla::vulkan_renderer::display::ctor(env, window);
-
-	std::shared_ptr<vkr::environment> env_ptr(
-		&env, [](vkr::environment*)
-		{});
-	std::shared_ptr<vkr::display> display_ptr(
-		&display, [](vkr::display*)
-		{});
+	error_handling::error_id err{ };
+	std::shared_ptr<vkr::display> display = std::make_shared<vkr::display>(env, window.handle(), err);
 
 	gorilla::small_application app(
 		window.handle(),
-		env_ptr,
-		display_ptr);
-
-	vk::CommandPoolCreateInfo command_pool_create_info(
-		vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-		env.graphics_family());
-	vk::raii::CommandPool command_pool = env.device().createCommandPool(command_pool_create_info);
-
-	vk::CommandBufferAllocateInfo allocate_info(
-		*command_pool,
-		vk::CommandBufferLevel::ePrimary,
-		1);
-	vk::raii::CommandBuffer cmd = std::move(env.device().allocateCommandBuffers(allocate_info)[0]);
-
-	std::vector<vk::DescriptorPoolSize> sizes = {
-		{ vk::DescriptorType::eUniformBuffer,        1000 },
-		{ vk::DescriptorType::eCombinedImageSampler, 1000 },
-	};
-
-	vk::DescriptorPoolCreateInfo descriptor_pool_create_info(
-		{ },
-		10,
-		sizes);
-	vk::raii::DescriptorPool imgui_descriptor_pool = env.device().createDescriptorPool(descriptor_pool_create_info);
-
-	ImGui_ImplVulkan_InitInfo init_info(
-		*env.instance(),
-		*env.phys_device(),
-		*env.device(),
-		env.graphics_family(),
-		*env.graphics_queue(),
-		VK_NULL_HANDLE,
-		*imgui_descriptor_pool,
-		0,
-		display.image_views().size(),
-		display.image_views().size(),
-		VkSampleCountFlagBits::VK_SAMPLE_COUNT_1_BIT,
-		nullptr,
-		nullptr);
-
-	ImGuiContext* imgui_context = ImGui::CreateContext();
-	ImGui_ImplGlfw_InitForVulkan(window.handle(), true);
-	ImGui_ImplVulkan_Init(&init_info, app.render_pass());
-
-	vk::CommandBufferBeginInfo command_buffer_begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-	cmd.begin(command_buffer_begin_info);
-
-	ImGui_ImplVulkan_CreateFontsTexture(*cmd);
-
-	cmd.end();
-	vk::SubmitInfo submit_info(
-		{ },
-		{ },
-		*cmd);
-	env.graphics_queue().submit(submit_info);
-	env.graphics_queue().waitIdle();
+		env,
+		display);
 
 	app.run();
 
-//	vk::SemaphoreCreateInfo semaphore_create_info{ };
-//	std::vector<vk::raii::Semaphore> acquire_semaphores;
-//	acquire_semaphores.push_back(env.device().createSemaphore(semaphore_create_info));
-//	acquire_semaphores.push_back(env.device().createSemaphore(semaphore_create_info));
-//
-//	std::vector<vk::raii::Semaphore> present_semaphores{ };
-//	present_semaphores.push_back(env.device().createSemaphore(semaphore_create_info));
-//	present_semaphores.push_back(env.device().createSemaphore(semaphore_create_info));
-//
-//	vk::FenceCreateInfo fence_create_info(vk::FenceCreateFlagBits::eSignaled);
-//	std::vector<vk::raii::Fence> is_flight_fences{ };
-//	is_flight_fences.push_back(env.device().createFence(fence_create_info));
-//	is_flight_fences.push_back(env.device().createFence(fence_create_info));
-//
-//	allocate_info.commandBufferCount = 2;
-//	std::vector<vk::raii::CommandBuffer> cmds = env.device().allocateCommandBuffers(allocate_info);
-//
-//
-//	command_buffer_begin_info.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-//	int frame_num = 0;
-//
-//	std::chrono::time_point ts_start = std::chrono::steady_clock::now();
-//	while (!window.should_close())
-//	{
-//		glfw::poll_events();
-//
-//		if (glfwGetKey(window.handle(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-//		{
-//			window.set_should_close(true);
-//		}
-//
-//		ImGui_ImplVulkan_NewFrame();
-//		ImGui_ImplGlfw_NewFrame();
-//		ImGui::NewFrame();
-//
-////		ImGui::ShowDemoWindow();
-//
-//		ImGui::Render();
-//
-//		vk::resultCheck(
-//			env.device()
-//			   .waitForFences(
-//				   *is_flight_fences[frame_num
-//				                     % 2], true, UINT64_MAX), "is flight fence checker");
-//		vk::Result result_1;
-//		uint32_t index;
-//		std::tie(result_1, index) = display.swapchain().acquireNextImage(1000, *acquire_semaphores[frame_num % 2]);
-//		env.device().resetFences(*is_flight_fences[frame_num % 2]);
-//
-//		std::vector<vk::ClearValue> clear_values = {
-//			vk::ClearValue(vk::ClearColorValue(std::array<float, 4>{ 1.0f, 0.5f, 0.5f, 1.0f })),
-//			vk::ClearValue(vk::ClearDepthStencilValue(0.0f, 1)),
-//		};
-//		vk::RenderPassBeginInfo render_pass_begin_info(
-//			*render_pass,
-//			*framebuffers[index],
-//			vk::Rect2D(vk::Offset2D(0, 0), display.image_extent()),
-//			clear_values);
-//
-//		cmds[frame_num % 2].reset();
-//		cmds[frame_num % 2].begin(command_buffer_begin_info);
-//		cmds[frame_num % 2].beginRenderPass(render_pass_begin_info, vk::SubpassContents::eInline);
-//
-//		vk::Viewport viewport(
-//			0.0f, 0.0f,
-//			display.image_extent().width, display.image_extent().height,
-//			0.0f, 1.0f);
-//		cmds[frame_num % 2].setViewport(0, viewport);
-//
-//		vk::Rect2D scissor(
-//			vk::Offset2D(0, 0),
-//			vk::Extent2D(display.image_extent().width, display.image_extent().height));
-//		cmds[frame_num % 2].setScissor(0, scissor);
-//
-//		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *cmds[frame_num % 2]);
-//		cmds[frame_num % 2].endRenderPass();
-//		cmds[frame_num % 2].end();
-//
-//		std::vector<vk::PipelineStageFlags> stages{ vk::PipelineStageFlagBits::eColorAttachmentOutput };
-//		submit_info = vk::SubmitInfo(
-//			*acquire_semaphores[frame_num % 2],
-//			stages,
-//			*cmds[frame_num % 2],
-//			*present_semaphores[frame_num % 2]);
-//		env.graphics_queue().submit(submit_info, *is_flight_fences[frame_num % 2]);
-//		vk::PresentInfoKHR present_info(
-//			*present_semaphores[frame_num % 2],
-//			*display.swapchain(),
-//			index);
-//
-//		try
-//		{
-//			env.graphics_queue().waitIdle();
-//			vk::resultCheck(env.graphics_queue().presentKHR(present_info), "present failed");
-//		}
-//		catch (const std::exception& e)
-//		{
-//			while (window.framebuffer_size().x == 0 || window.framebuffer_size().y == 0)
-//			{
-//				glfw::wait_events();
-//			}
-//
-//			env.device().waitIdle();
-//
-//			display.recreate();
-//
-//			framebuffers.clear();
-//			for (int i = 0; i < display.image_views().size(); i++)
-//			{
-//				std::vector<vk::ImageView> attachments = {
-//					*display.image_views()[i],
-//					*display.depth_image_view(),
-//				};
-//				vk::FramebufferCreateInfo framebuffer_create_info(
-//					{ },
-//					*render_pass,
-//					attachments,
-//					display.image_extent().width,
-//					display.image_extent().height,
-//					1);
-//				framebuffers.push_back(env.device().createFramebuffer(framebuffer_create_info));
-//			}
-//
-//			++frame_num;
-//			continue;
-//		}
-//
-//
-//		std::chrono::time_point ts_now = std::chrono::steady_clock::now();
-//		int spf = std::chrono::duration_cast<std::chrono::microseconds>(ts_now - ts_start).count();
-//		float fps = float(1'000'000) / spf;
-//		std::cout << fps << std::endl;
-//		ts_start = ts_now;
-//
-//		++frame_num;
-//	}
 
 	ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 	ImGui_ImplVulkan_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext(imgui_context);
 
 	return 0;
 }

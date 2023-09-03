@@ -6,26 +6,7 @@
 namespace gorilla::vulkan_renderer
 {
 
-environment::environment(
-	vk::raii::Context t_context,
-	vk::raii::Instance t_instance,
-	vk::raii::PhysicalDevice t_phys_device,
-	vk::raii::Device t_device,
-	int t_graphics_family,
-	int t_compute_family,
-	int t_transfer_family,
-	std::vector<vk::raii::Queue> t_queues) noexcept
-	: m_context(std::move(t_context)),
-	  m_instance(std::move(t_instance)),
-	  m_phys_device(std::move(t_phys_device)),
-	  m_device(std::move(t_device)),
-	  m_graphics_family(t_graphics_family),
-	  m_compute_family(t_compute_family),
-	  m_transfer_family(t_transfer_family),
-	  m_queues(std::move(t_queues))
-{}
-
-gorilla::error_handling::result<environment> environment::ctor(const environment_create_info& create_info)
+environment::environment(const environment_create_info& create_info)
 {
 	vk::ApplicationInfo application_info(
 		create_info.app_name.c_str(),
@@ -44,45 +25,46 @@ gorilla::error_handling::result<environment> environment::ctor(const environment
 		instance_layers,
 		instance_extensions);
 	vk::raii::Context context;
-	vk::raii::Instance instance = context.createInstance(instance_create_info);
+	instance_ = context.createInstance(instance_create_info);
 
-	const std::vector<vk::raii::PhysicalDevice> physical_devices = instance.enumeratePhysicalDevices();
+	const std::vector<vk::raii::PhysicalDevice> physical_devices = instance_.enumeratePhysicalDevices();
 
-	vk::raii::PhysicalDevice physical_device = physical_devices[0];
+	phys_device_ = physical_devices[0];
 
 	std::vector<int32_t> graphics_families;
 	std::vector<int32_t> transfer_families;
 	std::vector<int32_t> compute_families;
-	const std::vector<vk::QueueFamilyProperties> family_properties = physical_device.getQueueFamilyProperties();
+	const std::vector<vk::QueueFamilyProperties> family_properties = phys_device_.getQueueFamilyProperties();
 	for (int32_t i = 0; i < family_properties.size(); i++)
 	{
 		if (family_properties[i].queueFlags & vk::QueueFlagBits::eGraphics
-		    && glfw::query_present_capabilities(instance, physical_device, i))
+		    && glfw::query_present_capabilities(instance_, phys_device_, i))
 			graphics_families.push_back(i);
 		if (family_properties[i].queueFlags & vk::QueueFlagBits::eTransfer)
 			transfer_families.push_back(i);
 		if (family_properties[i].queueFlags & vk::QueueFlagBits::eCompute)
 			compute_families.push_back(i);
 	}
-	int graphics_family = graphics_families[0];
+
+	graphics_family_ = graphics_families[0];
 	int i = 0;
-	while (compute_families[i] == graphics_family)
+	while (compute_families[i] == graphics_family_)
 	{
 		i++;
 	}
-	int compute_family = compute_families[i];
+	compute_family_ = compute_families[i];
 	i = 0;
-	while (transfer_families[i] == graphics_family || transfer_families[i] == compute_family)
+	while (transfer_families[i] == graphics_family_ || transfer_families[i] == compute_family_)
 	{
 		i++;
 	}
-	int transfer_family = transfer_families[i];
+	transfer_family_ = transfer_families[i];
 
 	const std::vector<float> priorities = { 1.0f };
 	std::vector<vk::DeviceQueueCreateInfo> queue_create_infos = {
-		vk::DeviceQueueCreateInfo({ }, graphics_family, priorities),
-		vk::DeviceQueueCreateInfo({ }, compute_family, priorities),
-		vk::DeviceQueueCreateInfo({ }, transfer_family, priorities),
+		vk::DeviceQueueCreateInfo({ }, graphics_family_, priorities),
+		vk::DeviceQueueCreateInfo({ }, compute_family_, priorities),
+		vk::DeviceQueueCreateInfo({ }, transfer_family_, priorities),
 	};
 
 	std::vector<const char*> device_layers{ };
@@ -95,22 +77,11 @@ gorilla::error_handling::result<environment> environment::ctor(const environment
 		device_layers,
 		device_extensions,
 		&create_info.desired_features);
-	vk::raii::Device device = physical_device.createDevice(device_create_info);
-	std::vector<vk::raii::Queue> queues = {
-		device.getQueue(graphics_family, 0),
-		device.getQueue(compute_family, 0),
-		device.getQueue(transfer_family, 0),
-	};
-
-	return environment{
-		std::move(context),
-		std::move(instance),
-		std::move(physical_device),
-		std::move(device),
-		graphics_family,
-		compute_family,
-		transfer_family,
-		std::move(queues)
+	device_ = phys_device_.createDevice(device_create_info);
+	queues_ = {
+		device_.getQueue(graphics_family_, 0),
+		device_.getQueue(compute_family_, 0),
+		device_.getQueue(transfer_family_, 0),
 	};
 }
 

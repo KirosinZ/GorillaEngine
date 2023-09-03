@@ -21,6 +21,7 @@ struct display_create_info
 class display
 {
 public:
+	display(std::shared_ptr<environment> env, GLFWwindow* wnd, error_handling::error_id& err, const display_create_info& create_info = { });
 
 	display(const display&) = delete;
 
@@ -31,65 +32,41 @@ public:
 	// Will not work correctly, needs proper implementation
 	display& operator=(display&&) = default;
 
-	~display() = default;
-
-	static gorilla::error_handling::result<display> ctor(environment& env, glfw::window& t_window, const display_create_info& t_create_info = { });
-
 	void recreate();
 
 	inline const vk::raii::SurfaceKHR& surface() const noexcept
-	{ return m_surface; }
+	{ return surface_; }
 
 	inline const vk::raii::SwapchainKHR& swapchain() const noexcept
-	{ return m_swapchain; }
+	{ return swapchain_; }
 
 	inline const std::vector<vk::raii::ImageView>& image_views() const noexcept
-	{ return m_image_views; }
+	{ return image_views_; }
 
-	inline const vk::raii::Image& depth_image() const noexcept
-	{ return m_depth_image; }
-
-	inline const vk::raii::ImageView& depth_image_view() const noexcept
-	{ return m_depth_view; }
-
-//	inline const vk::raii::DeviceMemory& depth_image_memory() const noexcept { return m_depth_memory; }
 	inline const vk::Extent2D image_extent() const noexcept
-	{ return m_image_extent; }
+	{ return image_extent_; }
 
 	inline const vk::Format image_format() const noexcept
-	{ return m_image_format; }
-
-	inline const vk::Format depth_format() const noexcept
-	{ return m_depth_format; }
+	{ return image_format_; }
 
 	inline const vk::ColorSpaceKHR image_color_space() const noexcept
-	{ return m_image_color_space; }
+	{ return image_color_space_; }
 
 	inline const vk::PresentModeKHR present_mode() const noexcept
-	{ return m_present_mode; }
+	{ return present_mode_; }
 
 private:
-	display() = default;
+	std::shared_ptr<environment> environment_ = nullptr;
+	GLFWwindow* window_ = nullptr;
 
-	environment* m_environment = nullptr;
-	gorilla::glfw::window* m_window = nullptr;
+	vk::raii::SurfaceKHR surface_ = nullptr;
+	vk::raii::SwapchainKHR swapchain_ = nullptr;
+	std::vector<vk::raii::ImageView> image_views_;
 
-	vk::raii::SurfaceKHR m_surface = nullptr;
-	vk::raii::SwapchainKHR m_swapchain = nullptr;
-	std::vector<vk::raii::ImageView> m_image_views;
-
-	vk::raii::Image m_depth_image = nullptr;
-
-	vk::raii::ImageView m_depth_view = nullptr;
-	vk::raii::DeviceMemory m_depth_memory = nullptr;
-
-	vk::Extent2D m_image_extent{ };
-
-	vk::Format m_image_format{ };
-	vk::Format m_depth_format{ };
-
-	vk::ColorSpaceKHR m_image_color_space{ };
-	vk::PresentModeKHR m_present_mode{ };
+	vk::Extent2D image_extent_{ };
+	vk::Format image_format_{ };
+	vk::ColorSpaceKHR image_color_space_{ };
+	vk::PresentModeKHR present_mode_{ };
 };
 
 } // vulkan_renderer
