@@ -24,8 +24,6 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     endif ()
 endif ()
 
-add_subdirectory(glfw-3.3.8)
-
 add_subdirectory(src)
 
 if (BUILD_TESTING)

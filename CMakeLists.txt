@@ -1,21 +1,23 @@
 cmake_minimum_required(VERSION 3.25)
 project(Gorilla)
 
-#set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 20)
 
 find_package(Vulkan REQUIRED COMPONENTS
         shaderc_combined
         SPIRV-Tools)
 
-add_subdirectory(external/boost-1.82.0 EXCLUDE_FROM_ALL)
+#set(Boost_INCLUDE_DIR "external/boost/boost-1.82.0/boost")
+#add_subdirectory(external/boost/boost-1.82.0)
+find_package(Boost REQUIRED)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-#add_subdirectory(external/glfw-3.3.8)
+add_subdirectory(external/glfw/glfw-3.3.8)
 
-add_compile_options(/std:c++latest)
+#add_compile_options(/std:c++latest)
 
 add_compile_definitions(GORILLA_VERSION_MAJOR=0)
 add_compile_definitions(GORILLA_VERSION_MINOR=0)
@@ -92,10 +94,13 @@ add_executable(Gorilla
         external/imgui/imgui_tables.cpp
         external/imgui/imgui_widgets.cpp
         external/imgui/imgui_impl_glfw.cpp
-        external/imgui/imgui_impl_glfw.h)
+        external/imgui/imgui_impl_glfw.h
+        smallapplication.cpp
+        smallapplication.hpp)
 
 target_include_directories(Gorilla PUBLIC
-        external)
+        external
+        external/boost/boost-1.82.0/boost/..)
 
 target_link_libraries(Gorilla
         Gorilla::error_handling
