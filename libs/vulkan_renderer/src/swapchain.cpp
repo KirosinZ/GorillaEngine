@@ -1,4 +1,4 @@
-#include "vulkan_renderer/display.hpp"
+#include "vulkan_renderer/swapchain.hpp"
 
 #include <glfw_cpp/vulkan_glue.hpp>
 
@@ -6,12 +6,9 @@
 namespace gorilla::vulkan_renderer
 {
 
-display::display(std::shared_ptr<environment> env, GLFWwindow* wnd, error_handling::error_id& err, const display_create_info& create_info)
-	: environment_(env),
-	  window_(wnd)
+swapchain::swapchain(std::shared_ptr<environment> env, const vk::SurfaceKHR& surface, const swapchain_create_info& create_info)
+	: environment_(env)
 {
-	VkSurfaceKHR surface;
-	glfwCreateWindowSurface(*environment_->instance(), window_, nullptr, &surface);
 	surface_ = vk::raii::SurfaceKHR(environment_->instance(), surface);
 
 	vk::SurfaceCapabilitiesKHR surface_capabilities = environment_->phys_device().getSurfaceCapabilitiesKHR(*surface_);
@@ -84,7 +81,7 @@ display::display(std::shared_ptr<environment> env, GLFWwindow* wnd, error_handli
 	}
 }
 
-void display::recreate()
+void swapchain::recreate()
 {
 	const int n_images = image_views_.size();
 	image_views_.clear();

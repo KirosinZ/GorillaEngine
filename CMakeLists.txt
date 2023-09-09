@@ -96,7 +96,9 @@ add_executable(Gorilla
         external/imgui/imgui_impl_glfw.cpp
         external/imgui/imgui_impl_glfw.h
         smallapplication.cpp
-        smallapplication.hpp)
+        smallapplication.hpp
+        geom.cpp
+        geom.hpp)
 
 target_include_directories(Gorilla PUBLIC
         external
@@ -106,4 +108,5 @@ target_link_libraries(Gorilla
         Gorilla::error_handling
         Gorilla::glfw_cpp
         Vulkan::Vulkan
+        Vulkan::shaderc_combined
         Gorilla::vulkan_renderer)

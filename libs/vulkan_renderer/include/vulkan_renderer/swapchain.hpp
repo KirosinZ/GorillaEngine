@@ -1,5 +1,5 @@
-#ifndef GORILLA_DISPLAY_HPP
-#define GORILLA_DISPLAY_HPP
+#ifndef GORILLA_SWAPCHAIN_HPP
+#define GORILLA_SWAPCHAIN_HPP
 
 #include <vulkan/vulkan_raii.hpp>
 
@@ -13,31 +13,31 @@
 namespace gorilla::vulkan_renderer
 {
 
-struct display_create_info
+struct swapchain_create_info
 {
 	uint32_t desired_image_count = 2;
 };
 
-class display
+class swapchain
 {
 public:
-	display(std::shared_ptr<environment> env, GLFWwindow* wnd, error_handling::error_id& err, const display_create_info& create_info = { });
+	swapchain(std::shared_ptr<environment> env, const vk::SurfaceKHR& surface, const swapchain_create_info& create_info = { });
 
-	display(const display&) = delete;
+	swapchain(const swapchain&) = delete;
 
-	display& operator=(const display&) = delete;
+	swapchain& operator=(const swapchain&) = delete;
 
-	display(display&&) noexcept = default;
+	swapchain(swapchain&&) noexcept = default;
 
 	// Will not work correctly, needs proper implementation
-	display& operator=(display&&) = default;
+	swapchain& operator=(swapchain&&) = default;
 
 	void recreate();
 
 	inline const vk::raii::SurfaceKHR& surface() const noexcept
 	{ return surface_; }
 
-	inline const vk::raii::SwapchainKHR& swapchain() const noexcept
+	inline const vk::raii::SwapchainKHR& vk_swapchain() const noexcept
 	{ return swapchain_; }
 
 	inline const std::vector<vk::raii::ImageView>& image_views() const noexcept
@@ -57,7 +57,6 @@ public:
 
 private:
 	std::shared_ptr<environment> environment_ = nullptr;
-	GLFWwindow* window_ = nullptr;
 
 	vk::raii::SurfaceKHR surface_ = nullptr;
 	vk::raii::SwapchainKHR swapchain_ = nullptr;
@@ -71,4 +70,4 @@ private:
 
 } // vulkan_renderer
 
-#endif //GORILLA_DISPLAY_HPP
+#endif //GORILLA_SWAPCHAIN_HPP

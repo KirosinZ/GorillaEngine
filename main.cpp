@@ -17,15 +17,111 @@
 #include <glfw_cpp/glfw.hpp>
 
 #include <vulkan_renderer/environment.hpp>
-#include <vulkan_renderer/display.hpp>
+#include <vulkan_renderer/swapchain.hpp>
 
 #include "smallapplication.hpp"
+
+#include <fstream>
+#include <shaderc/shaderc.hpp>
+
+#include <vulkan_renderer/instance.hpp>
+#include <vulkan_renderer/surface.hpp>
 
 
 using namespace gorilla;
 
+void compile_vertex_shader()
+{
+	std::ifstream file("../shader.vert", std::ios::in | std::ios::ate);
+
+	if (!file.is_open())
+	{
+		std::cerr << "couldn't open file \"../shader.vert\"" << std::endl;
+		return;
+	}
+
+	const std::streamoff size = file.tellg();
+	std::vector<char> buffer(size);
+	file.seekg(0);
+	file.read(buffer.data(), size);
+	std::string source(buffer.begin(), buffer.end());
+
+	file.close();
+
+	shaderc::CompileOptions compile_options;
+	compile_options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
+	compile_options.SetTargetSpirv(shaderc_spirv_version_1_3);
+	shaderc::Compiler cmp;
+	const shaderc::CompilationResult<uint32_t> result = cmp.CompileGlslToSpv(
+		source, shaderc_vertex_shader, "shader.vert", compile_options);
+	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		std::cerr << "compilation failed:\n" << result.GetErrorMessage() << std::endl;
+		return;
+	}
+	std::vector<uint32_t> spirv(result.begin(), result.end());
+
+	std::ofstream file_out("../shader_vert.spv", std::ios::out | std::ios::binary);
+	if (!file_out.is_open())
+	{
+		std::cerr << "couldn't open file \"../shader_vert.spv\"" << std::endl;
+		return;
+	}
+
+	file_out.write(reinterpret_cast<char*>(spirv.data()), spirv.size() * sizeof(uint32_t));
+	file_out.close();
+}
+
+void compile_fragment_shader()
+{
+	std::ifstream file("../shader.frag", std::ios::in | std::ios::ate);
+
+	if (!file.is_open())
+	{
+		std::cerr << "couldn't open file \"../shader.frag\"" << std::endl;
+		return;
+	}
+
+	const std::streamoff size = file.tellg();
+	std::vector<char> buffer(size);
+	file.seekg(0);
+	file.read(buffer.data(), size);
+	std::string source(buffer.begin(), buffer.end());
+
+	file.close();
+
+	shaderc::CompileOptions compile_options;
+	compile_options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
+	compile_options.SetTargetSpirv(shaderc_spirv_version_1_3);
+	shaderc::Compiler cmp;
+	const shaderc::CompilationResult<uint32_t> result = cmp.CompileGlslToSpv(
+		source, shaderc_fragment_shader, "shader.frag", compile_options);
+	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		std::cerr << "compilation failed:\n" << result.GetErrorMessage() << std::endl;
+		return;
+	}
+	std::vector<uint32_t> spirv(result.begin(), result.end());
+
+	std::ofstream file_out("../shader_frag.spv", std::ios::out | std::ios::binary);
+	if (!file_out.is_open())
+	{
+		std::cerr << "couldn't open file \"../shader_frag.spv\"" << std::endl;
+		return;
+	}
+
+	file_out.write(reinterpret_cast<char*>(spirv.data()), spirv.size() * sizeof(uint32_t));
+	file_out.close();
+}
+
+namespace vkb = gorilla::vulkan_renderer::boilerplate;
+
 int main()
 {
+//	compile_vertex_shader();
+//	compile_fragment_shader();
+//	return 0;
+
 	glfw::window window = *glfw::window::ctor(
 		1920, 1080, "Gorillionaire", {
 			.window_hints = {
@@ -45,8 +141,9 @@ int main()
 			.desired_device_extensions = { "VK_KHR_swapchain" }
 		});
 
-	error_handling::error_id err{ };
-	std::shared_ptr<vkr::display> display = std::make_shared<vkr::display>(env, window.handle(), err);
+
+	vk::raii::SurfaceKHR surface = std::move(glfw::surface(env->instance(), window));
+	std::shared_ptr<vkr::swapchain> display = std::make_shared<vkr::swapchain>(env, *surface);
 
 	gorilla::small_application app(
 		window.handle(),
