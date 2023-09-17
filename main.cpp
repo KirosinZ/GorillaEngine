@@ -27,6 +27,8 @@
 #include <vulkan_renderer/instance.hpp>
 #include <vulkan_renderer/surface.hpp>
 
+#include "geom.hpp"
+
 
 using namespace gorilla;
 
@@ -61,10 +63,10 @@ void compile_vertex_shader()
 	}
 	std::vector<uint32_t> spirv(result.begin(), result.end());
 
-	std::ofstream file_out("../shader_vert.spv", std::ios::out | std::ios::binary);
+	std::ofstream file_out("../shader.vert.spv", std::ios::out | std::ios::binary);
 	if (!file_out.is_open())
 	{
-		std::cerr << "couldn't open file \"../shader_vert.spv\"" << std::endl;
+		std::cerr << "couldn't open file \"../shader.vert.spv\"" << std::endl;
 		return;
 	}
 
@@ -103,10 +105,10 @@ void compile_fragment_shader()
 	}
 	std::vector<uint32_t> spirv(result.begin(), result.end());
 
-	std::ofstream file_out("../shader_frag.spv", std::ios::out | std::ios::binary);
+	std::ofstream file_out("../shader.frag.spv", std::ios::out | std::ios::binary);
 	if (!file_out.is_open())
 	{
-		std::cerr << "couldn't open file \"../shader_frag.spv\"" << std::endl;
+		std::cerr << "couldn't open file \"../shader.frag.spv\"" << std::endl;
 		return;
 	}
 

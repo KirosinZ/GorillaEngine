@@ -1,6 +1,7 @@
 #include "smallapplication.hpp"
 
 #include <iostream>
+#include <string>
 
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_vulkan.h>
@@ -257,109 +258,31 @@ void small_application::init()
 		fragment_shader_.stage_create_info(),
 	};
 
-	const std::vector<glm::vec3> vertices = {
-		glm::vec3(-0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, 0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, -0.5f),
+	geom geom = geom::parse("../objs/golira.obj", err_msg);
+	std::vector<glm::vec3> colors(geom.n_vertices(), glm::vec3(1.0f));
 
-		glm::vec3(0.5f, -0.5f, 0.5f),
-		glm::vec3(-0.5f, -0.5f, 0.5f),
-		glm::vec3(-0.5f, 0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f),
+	std::vector<uint32_t> indices(geom.polygon_indices().size());
+	std::ranges::copy(geom.polygon_indices(), indices.begin());
 
-		glm::vec3(-0.5f, -0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, 0.5f),
-		glm::vec3(-0.5f, -0.5f, 0.5f),
+	aos_mesh_primitive_ = vkr::aos_mesh_primitive(
+		*env_,
+		geom.vertices(),
+		geom.normals(),
+		colors,
+		indices);
 
-		glm::vec3(0.5f, 0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f),
-
-		glm::vec3(-0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, -0.5f),
-		glm::vec3(0.5f, -0.5f, 0.5f),
-		glm::vec3(-0.5f, -0.5f, 0.5f),
-
-		glm::vec3(0.5f, 0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, -0.5f),
-		glm::vec3(-0.5f, 0.5f, 0.5f),
-		glm::vec3(0.5f, 0.5f, 0.5f),
-	};
-	const std::vector<glm::vec3> normals = {
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(0.0f, 0.0f, 1.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(-1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, -1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f),
-	};
-	const std::vector<int32_t> indices = {
-		0, 1, 2,
-		0, 2, 3,
-		4, 5, 6,
-		4, 6, 7,
-		8, 9, 10,
-		8, 10, 11,
-		12, 13, 14,
-		12, 14, 15,
-		16, 17, 18,
-		16, 18, 19,
-		20, 21, 22,
-		20, 22, 23,
-	};
-	vertex_byte_size_ = sizeof(glm::vec3) * vertices.size();
-	n_indices_ = indices.size();
-	geom cube(vertices, normals, indices);
-
-//	vk::VertexInputBindingDescription vertex_binding_description(
-//		0,
-//		2 * sizeof(glm::vec3),
-//		vk::VertexInputRate::eVertex);
-//
-//	std::vector<vk::VertexInputAttributeDescription> vertex_attribute_descriptions = {
-//		vk::VertexInputAttributeDescription(
-//			0,
-//			0,
-//			vk::Format::eR32G32B32Sfloat,
-//			0),
-//		vk::VertexInputAttributeDescription(
-//			1,
-//			0,
-//			vk::Format::eR32G32B32Sfloat,
-//			sizeof(glm::vec3)),
-//	};
-	const auto bindings = cube.binding_descriptions();
-	const auto attributes = cube.attribute_descriptions();
+	const auto bindings = aos_mesh_primitive_.binding_descriptions();
+	const auto attributes = aos_mesh_primitive_.attribute_descriptions();
 	vk::PipelineVertexInputStateCreateInfo vertex_input_info(
 		{ },
 		bindings,
 		attributes);
 
+	const auto [topology, restart_enable] = aos_mesh_primitive_.topology();
 	vk::PipelineInputAssemblyStateCreateInfo input_assembly_info(
 		{ },
-		vk::PrimitiveTopology::eTriangleList,
-		false);
+		topology,
+		restart_enable);
 
 	vk::PipelineTessellationStateCreateInfo tessellation_info{ };
 
@@ -411,7 +334,7 @@ void small_application::init()
 
 	std::vector<vk::DynamicState> dynamic_states{
 		vk::DynamicState::eViewport,
-		vk::DynamicState::eScissor
+		vk::DynamicState::eScissor,
 	};
 	vk::PipelineDynamicStateCreateInfo dynamic_state_create_info(
 		{ },
@@ -453,149 +376,6 @@ void small_application::init()
 		gf,
 	};
 
-	vk::BufferCreateInfo vertex_buffer_create_info(
-		{ },
-		sizeof(glm::vec3) * (cube.vertices().size() + cube.normals().size()),
-		vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-		vk::SharingMode::eExclusive,
-		gfs);
-	vertex_buffer_ = env_->device().createBuffer(vertex_buffer_create_info);
-
-	vk::BufferMemoryRequirementsInfo2 reqs(*vertex_buffer_);
-	vk::MemoryRequirements2 vertex_buffer_memory_requirements = env_->device().getBufferMemoryRequirements2(reqs);
-	for (int mti = 0; mti < env_->phys_device().getMemoryProperties(); mti++)
-	{
-		vk::MemoryType type = env_->phys_device().getMemoryProperties().memoryTypes[mti];
-		if (vertex_buffer_memory_requirements.memoryRequirements.memoryTypeBits & (1 << mti)
-		    && (type.propertyFlags & vk::MemoryPropertyFlagBits::eDeviceLocal)
-		       == vk::MemoryPropertyFlagBits::eDeviceLocal)
-		{
-			mem_type_index = mti;
-			break;
-		}
-	}
-
-	vk::MemoryAllocateInfo vertex_buffer_memory_allocate_info(
-		vertex_buffer_memory_requirements.memoryRequirements.size,
-		mem_type_index);
-	vertex_buffer_memory_ = env_->device().allocateMemory(vertex_buffer_memory_allocate_info);
-
-	vk::BufferCreateInfo index_buffer_create_info(
-		{ },
-		sizeof(int32_t) * cube.triangle_indices().size(),
-		vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-		vk::SharingMode::eExclusive,
-		gfs);
-	index_buffer_ = env_->device().createBuffer(index_buffer_create_info);
-
-	reqs = vk::BufferMemoryRequirementsInfo2(*index_buffer_);
-	vk::MemoryRequirements2 index_buffer_memory_requirements = env_->device().getBufferMemoryRequirements2(reqs);
-	for (int mti = 0; mti < env_->phys_device().getMemoryProperties().memoryTypeCount; mti++)
-	{
-		vk::MemoryType type = env_->phys_device().getMemoryProperties().memoryTypes[mti];
-		if (index_buffer_memory_requirements.memoryRequirements.memoryTypeBits & (1 << mti)
-		    && (type.propertyFlags & vk::MemoryPropertyFlagBits::eDeviceLocal)
-		       == vk::MemoryPropertyFlagBits::eDeviceLocal)
-		{
-			mem_type_index = mti;
-			break;
-		}
-	}
-
-	vk::MemoryAllocateInfo index_buffer_memory_allocate_info(
-		index_buffer_memory_requirements.memoryRequirements.size,
-		mem_type_index);
-	index_buffer_memory_ = env_->device().allocateMemory(index_buffer_memory_allocate_info);
-
-	vk::BufferCreateInfo staging_buffer_create_info(
-		{ },
-		sizeof(glm::vec3) * (cube.vertices().size() + cube.normals().size()) + sizeof(int32_t) * indices.size(),
-		vk::BufferUsageFlagBits::eTransferSrc,
-		vk::SharingMode::eExclusive,
-		gfs);
-	vk::raii::Buffer staging_buffer = env_->device().createBuffer(staging_buffer_create_info);
-
-	reqs = vk::BufferMemoryRequirementsInfo2(*staging_buffer);
-	vk::MemoryRequirements2 staging_buffer_memory_requirements = env_->device().getBufferMemoryRequirements2(reqs);
-	for (int mti = 0; mti < env_->phys_device().getMemoryProperties().memoryTypeCount; mti++)
-	{
-		vk::MemoryType type = env_->phys_device().getMemoryProperties().memoryTypes[mti];
-		if (staging_buffer_memory_requirements.memoryRequirements.memoryTypeBits & (1 << mti)
-		    && (type.propertyFlags
-		        & (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
-		       == (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
-		{
-			mem_type_index = mti;
-			break;
-		}
-	}
-	vk::MemoryAllocateInfo staging_buffer_memory_allocate_info(
-		staging_buffer_memory_requirements.memoryRequirements.size,
-		mem_type_index);
-	vk::raii::DeviceMemory staging_buffer_memory = env_->device().allocateMemory(staging_buffer_memory_allocate_info);
-
-	std::vector<vk::BindBufferMemoryInfo> bind_infos = {
-		vk::BindBufferMemoryInfo{
-			*vertex_buffer_,
-			*vertex_buffer_memory_,
-			0
-		},
-		vk::BindBufferMemoryInfo{
-			*index_buffer_,
-			*index_buffer_memory_,
-			0
-		},
-		vk::BindBufferMemoryInfo{
-			*staging_buffer,
-			*staging_buffer_memory,
-			0
-		}
-	};
-	env_->device().bindBufferMemory2(bind_infos);
-
-	void* data = staging_buffer_memory.mapMemory(0, sizeof(glm::vec3) * cube.vertices().size());
-	std::memcpy(data, cube.vertices().data(), sizeof(glm::vec3) * cube.vertices().size());
-	staging_buffer_memory.unmapMemory();
-	data = staging_buffer_memory.mapMemory(
-		sizeof(glm::vec3) * cube.vertices().size(), sizeof(glm::vec3)
-		                                            * cube.normals().size());
-	std::memcpy(data, cube.normals().data(), sizeof(glm::vec3) * cube.normals().size());
-	staging_buffer_memory.unmapMemory();
-
-	vk::BufferCopy vertex_copy_region(0, 0, sizeof(glm::vec3) * (cube.vertices().size() + cube.normals().size()));
-
-	tmp_cmd.reset();
-	tmp_cmd.begin(command_buffer_begin_info);
-	tmp_cmd.copyBuffer(*staging_buffer, *vertex_buffer_, vertex_copy_region);
-	tmp_cmd.end();
-
-	submit_info = vk::SubmitInfo(
-		{ },
-		{ },
-		*tmp_cmd,
-		{ });
-	env_->graphics_queue().submit(submit_info);
-	env_->graphics_queue().waitIdle();
-
-	data = staging_buffer_memory.mapMemory(0, sizeof(int32_t) * cube.triangle_indices().size());
-	std::memcpy(data, indices.data(), sizeof(int32_t) * cube.triangle_indices().size());
-	staging_buffer_memory.unmapMemory();
-
-	vk::BufferCopy index_copy_region(0, 0, sizeof(int32_t) * cube.triangle_indices().size());
-
-	tmp_cmd.reset();
-	tmp_cmd.begin(command_buffer_begin_info);
-	tmp_cmd.copyBuffer(*staging_buffer, *index_buffer_, index_copy_region);
-	tmp_cmd.end();
-
-	submit_info = vk::SubmitInfo(
-		{ },
-		{ },
-		*tmp_cmd,
-		{ });
-	env_->graphics_queue().submit(submit_info);
-	env_->graphics_queue().waitIdle();
-
 	struct UniformBuffer
 	{
 		glm::mat4 model = glm::mat4(1.0f);
@@ -616,31 +396,21 @@ void small_application::init()
 		vk::SharingMode::eExclusive,
 		gfs);
 	uniform_buffer_ = env_->device().createBuffer(uniform_buffer_create_info);
+	uniform_buffer_memory_ = env_->memory_manager()
+	                             .allocate(
+		                             uniform_buffer_, vk::MemoryPropertyFlagBits::eHostVisible
+		                                              | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-	reqs = vk::BufferMemoryRequirementsInfo2(*uniform_buffer_);
-	vk::MemoryRequirements2 uniform_buffer_memory_requirements = env_->device().getBufferMemoryRequirements2(reqs);
-	for (int mti = 0; mti < env_->phys_device().getMemoryProperties().memoryTypeCount; mti++)
-	{
-		vk::MemoryType type = env_->phys_device().getMemoryProperties().memoryTypes[mti];
-		if (uniform_buffer_memory_requirements.memoryRequirements.memoryTypeBits & (1 << mti)
-		    && (type.propertyFlags
-		        & (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
-		       == (vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent))
-		{
-			mem_type_index = mti;
-			break;
+	std::vector<vk::BindBufferMemoryInfo> bind_infos = {
+		vk::BindBufferMemoryInfo{
+			*uniform_buffer_,
+			*uniform_buffer_memory_,
+			0
 		}
-	}
+	};
+	env_->device().bindBufferMemory2(bind_infos);
 
-	vk::MemoryAllocateInfo uniform_buffer_memory_allocate_info(
-		uniform_buffer_memory_requirements.memoryRequirements.size,
-		mem_type_index);
-	uniform_buffer_memory_ = env_->device().allocateMemory(uniform_buffer_memory_allocate_info);
-
-	vk::BindBufferMemoryInfo uniform_buffer_bind_info(*uniform_buffer_, *uniform_buffer_memory_, 0);
-	env_->device().bindBufferMemory2(uniform_buffer_bind_info);
-
-	data = uniform_buffer_memory_.mapMemory(0, sizeof(UniformBuffer));
+	void* data = uniform_buffer_memory_.mapMemory(0, sizeof(UniformBuffer));
 	std::memcpy(data, &uniform_buffer, sizeof(UniformBuffer));
 	uniform_buffer_memory_.unmapMemory();
 
@@ -696,11 +466,13 @@ void small_application::run()
 			glm::mat4 view = glm::mat4(1.0f);
 			glm::mat4 projection = glm::mat4(1.0f);
 
-			glm::vec3 camPos = glm::vec3(0.0f, 1.0f, -1.0f);
+			glm::vec3 camPos = glm::vec3(0.0f, 3.0f, -3.0f);
 		};
 
 		UniformBuffer uniform_buffer{ };
-		uniform_buffer.model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+		uniform_buffer.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
+		uniform_buffer.model = glm::rotate(uniform_buffer.model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+		uniform_buffer.model = glm::rotate(uniform_buffer.model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		uniform_buffer.view = glm::lookAt(uniform_buffer.camPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		uniform_buffer.projection = glm::perspective(90.0f, 16.0f / 9.0f, 0.1f, 15.0f);
 		uniform_buffer.projection[1][1] *= -1;
@@ -808,10 +580,9 @@ void small_application::frame(int image_index)
 
 	cmds_[frame_index].bindPipeline(vk::PipelineBindPoint::eGraphics, *pipeline_);
 	cmds_[frame_index].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, *pipeline_layout_, 0, *descriptor_set_, { });
-	cmds_[frame_index].bindVertexBuffers(0, { *vertex_buffer_, *vertex_buffer_ }, { 0, uint32_t(vertex_byte_size_) });
-	cmds_[frame_index].bindIndexBuffer(*index_buffer_, 0, vk::IndexType::eUint32);
 
-	cmds_[frame_index].drawIndexed(n_indices_, 1, 0, 0, 0);
+	aos_mesh_primitive_.draw(cmds_[frame_index]);
+	
 	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), *cmds_[frame_index]);
 	cmds_[frame_index].endRenderPass();
 	cmds_[frame_index].end();

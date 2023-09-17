@@ -14,6 +14,8 @@
 
 #include <vulkan_renderer/shader.hpp>
 
+#include <vulkan_renderer/aos_mesh_primitive.hpp>
+
 
 namespace vkr = gorilla::vulkan_renderer;
 
@@ -70,13 +72,7 @@ private:
 	vk::raii::PipelineLayout pipeline_layout_ = nullptr;
 	vk::raii::Pipeline pipeline_ = nullptr;
 
-	vk::raii::Buffer vertex_buffer_ = nullptr;
-	vk::raii::DeviceMemory vertex_buffer_memory_ = nullptr;
-
-	vk::raii::Buffer index_buffer_ = nullptr;
-	vk::raii::DeviceMemory index_buffer_memory_ = nullptr;
-	int vertex_byte_size_ = 0;
-	int n_indices_ = 0;
+	vkr::aos_mesh_primitive aos_mesh_primitive_{ };
 
 	vk::raii::Buffer uniform_buffer_ = nullptr;
 	vk::raii::DeviceMemory uniform_buffer_memory_ = nullptr;

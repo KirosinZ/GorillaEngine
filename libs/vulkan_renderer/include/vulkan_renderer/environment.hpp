@@ -5,6 +5,8 @@
 
 #include <error_handling/exceptions.hpp>
 
+#include <vulkan_renderer/device_memory_manager.hpp>
+
 
 namespace gorilla::vulkan_renderer
 {
@@ -65,6 +67,9 @@ public:
 	[[nodiscard]] inline const vk::raii::Queue& transfer_queue() const noexcept
 	{ return queues_[2]; }
 
+	[[nodiscard]] inline const device_memory_manager& memory_manager() const noexcept
+	{ return memory_manager_; }
+
 private:
 	vk::raii::Context context_;
 	vk::raii::Instance instance_ = nullptr;
@@ -74,6 +79,8 @@ private:
 	int compute_family_ = -1;
 	int transfer_family_ = -1;
 	std::vector<vk::raii::Queue> queues_;
+
+	device_memory_manager memory_manager_;
 };
 
 }

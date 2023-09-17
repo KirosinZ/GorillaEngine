@@ -2,6 +2,8 @@
 
 #include <glfw_cpp/vulkan_glue.hpp>
 
+#include <vulkan_renderer/device_memory_manager.hpp>
+
 
 namespace gorilla::vulkan_renderer
 {
@@ -83,6 +85,8 @@ environment::environment(const environment_create_info& create_info)
 		device_.getQueue(compute_family_, 0),
 		device_.getQueue(transfer_family_, 0),
 	};
+
+	memory_manager_ = device_memory_manager(*this);
 }
 
 }
